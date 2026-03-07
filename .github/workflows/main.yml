@@ -11,15 +11,15 @@ jobs:
     runs-on: ubuntu-latest
 
     services:
-      # On lance un conteneur MySQL pour les tests
+      # On lance un conteneur MySQL pour les tests avec un mot de passe fixe pour le CI
       mysql:
         image: mysql:8.0
         env:
           MYSQL_DATABASE: ecomove
-          MYSQL_ROOT_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          MYSQL_ROOT_PASSWORD: root
         ports:
           - 3306:3306
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+        options: --health-cmd="mysqladmin ping -proot" --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
     - uses: actions/checkout@v4
@@ -34,10 +34,10 @@ jobs:
     - name: Build and Run Tests
       run: ./mvnw clean install
       env:
-        # On injecte les secrets dans les variables d'environnement de Spring Boot
+        # On utilise le mot de passe 'root' défini plus haut pour le conteneur de test
         SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/ecomove
         SPRING_DATASOURCE_USERNAME: root
-        SPRING_DATASOURCE_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        SPRING_DATASOURCE_PASSWORD: root
 
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
