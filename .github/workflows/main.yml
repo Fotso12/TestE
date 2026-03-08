@@ -42,13 +42,12 @@ jobs:
 
     - name: Vérifier la connectivité SonarQube (Debug)
       run: |
-        # Nettoyage des secrets (supprime espaces et retours à la ligne)
         S_URL=$(echo "${{ secrets.SONAR_HOST_URL }}" | tr -d '\r\n' | xargs)
-        S_TOKEN=$(echo "${{ secrets.SONAR_TOKEN }}" | tr -d '\r\n' | xargs)
-        
-        echo "Tentative de connexion à : ${S_URL}"
-        # Bypass de la page d'avertissement Ngrok pour le test curl
-        curl -s -v -H "ngrok-skip-browser-warning: true" "${S_URL}/api/server/version" || echo "Échec du curl"
+        echo "Vérification de l'URL : ${S_URL}"
+        echo "--- HEADERS ---"
+        curl -I -s "${S_URL}/api/server/version"
+        echo "--- BODY (10 premières lignes) ---"
+        curl -s "${S_URL}/api/server/version" | head -n 10
       continue-on-error: true
 
     - name: Analyse SonarQube
