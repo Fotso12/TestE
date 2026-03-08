@@ -8,17 +8,7 @@ on:
 
 jobs:
   build-and-analyze:
-    runs-on: ubuntu-latest
-
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_DATABASE: ecomove
-          MYSQL_ROOT_PASSWORD: root
-        ports:
-          - 3306:3306
-        options: --health-cmd="mysqladmin ping -proot" --health-interval=10s --health-timeout=5s --health-retries=3
+    runs-on: self-hosted
 
     steps:
     - name: Checkout du code
@@ -35,23 +25,15 @@ jobs:
 
     - name: Compilation et Tests
       run: ./mvnw clean verify
-      env:
-        SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/ecomove
-        SPRING_DATASOURCE_USERNAME: root
-        SPRING_DATASOURCE_PASSWORD: root
+      # On suppose que MySQL est déjà lancé localement ou via Docker sur le PC
 
     - name: Analyse SonarQube
       run: |
-        # Nettoyage des secrets et lancement de l'analyse standard avec sonarscanner
-        S_URL=$(echo "${{ secrets.SONAR_HOST_URL }}" | tr -d '\r\n' | xargs)
-        S_TOKEN=$(echo "${{ secrets.SONAR_TOKEN }}" | tr -d '\r\n' | xargs)
-        
-        ./mvnw sonar:sonar \
-        -Dsonar.projectKey=EcoMove \
-        -Dsonar.host.url="${S_URL}" \
-        -Dsonar.token="${S_TOKEN}" \
-        -Dsonar.qualitygate.wait=true \
-        -Dhttp.agent=SonarScanner
+        ./mvnw sonar:sonar `
+        -Dsonar.projectKey=EcoMove `
+        -Dsonar.host.url=http://localhost:9000 `
+        -Dsonar.token=${{ secrets.SONAR_TOKEN }} `
+        -Dsonar.qualitygate.wait=true
 
     - name: Sauvegarde de l'Artifact (JAR)
       uses: actions/upload-artifact@v4
