@@ -11,7 +11,6 @@ jobs:
     runs-on: ubuntu-latest
 
     services:
-      # Lancement de la base de données de test
       mysql:
         image: mysql:8.0
         env:
@@ -25,7 +24,7 @@ jobs:
     - name: Checkout du code
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0 # Important pour SonarQube (historique Git)
+        fetch-depth: 0 
 
     - name: Configuration du JDK 17
       uses: actions/setup-java@v4
@@ -34,7 +33,6 @@ jobs:
         distribution: 'temurin'
         cache: maven
 
-    # Étape de compilation et exécution des tests (génère le rapport JaCoCo)
     - name: Compilation et Tests
       run: ./mvnw clean verify
       env:
@@ -42,26 +40,24 @@ jobs:
         SPRING_DATASOURCE_USERNAME: root
         SPRING_DATASOURCE_PASSWORD: root
 
-    # Étape d'envoi vers SonarQube (via ton tunnel Ngrok)
+    # CORRECTION : Utilisation de guillemets pour les secrets et suppression du '>' pour une ligne plus propre
     - name: Analyse SonarQube
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-      run: >
-        ./mvnw sonar:sonar 
-        -Dsonar.projectKey=EcoMove 
-        -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} 
-        -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+      run: |
+        ./mvnw sonar:sonar \
+        -Dsonar.projectKey=EcoMove \
+        -Dsonar.host.url="${{ secrets.SONAR_HOST_URL }}" \
+        -Dsonar.login="${{ secrets.SONAR_TOKEN }}" \
         -Dsonar.qualitygate.wait=true
 
-    # RÉINTÉGRATION : On sauvegarde le JAR généré pour qu'il soit téléchargeable sur GitHub
     - name: Sauvegarde de l'Artifact (JAR)
       uses: actions/upload-artifact@v4
       with:
         name: ecomove-app
         path: target/*.jar
 
-    # Étape de publication Docker
     - name: Connexion Docker Hub
       uses: docker/login-action@v3
       with:
