@@ -53,8 +53,12 @@ jobs:
 
     - name: Analyse SonarQube
       run: |
+        # Nettoyage et préparation des variables
         S_URL=$(echo "${{ secrets.SONAR_HOST_URL }}" | tr -d '\r\n' | xargs)
         S_TOKEN=$(echo "${{ secrets.SONAR_TOKEN }}" | tr -d '\r\n' | xargs)
+        
+        # Contournement Ngrok : On force un User-Agent non-navigateur pour éviter la page d'avertissement
+        export MAVEN_OPTS="-Dhttp.agent=SonarScanner"
         
         ./mvnw -e sonar:sonar \
         -Dsonar.projectKey=EcoMove \
