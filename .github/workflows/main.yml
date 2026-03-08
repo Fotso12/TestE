@@ -42,7 +42,7 @@ jobs:
 
     - name: Analyse SonarQube
       run: |
-        # Nettoyage des secrets et lancement de l'analyse standard
+        # Nettoyage des secrets et lancement de l'analyse standard avec sonarscanner
         S_URL=$(echo "${{ secrets.SONAR_HOST_URL }}" | tr -d '\r\n' | xargs)
         S_TOKEN=$(echo "${{ secrets.SONAR_TOKEN }}" | tr -d '\r\n' | xargs)
         
