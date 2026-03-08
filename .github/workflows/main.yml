@@ -40,20 +40,26 @@ jobs:
         SPRING_DATASOURCE_USERNAME: root
         SPRING_DATASOURCE_PASSWORD: root
 
-    - name: Vérifier la connectivité SonarQube
+    - name: Vérifier la connectivité SonarQube (Debug)
       run: |
-        curl -v "${{ secrets.SONAR_HOST_URL }}/api/server/version"
+        # Nettoyage des secrets (supprime espaces et retours à la ligne)
+        S_URL=$(echo "${{ secrets.SONAR_HOST_URL }}" | tr -d '\r\n' | xargs)
+        S_TOKEN=$(echo "${{ secrets.SONAR_TOKEN }}" | tr -d '\r\n' | xargs)
+        
+        echo "Tentative de connexion à : ${S_URL}"
+        # Bypass de la page d'avertissement Ngrok pour le test curl
+        curl -s -v -H "ngrok-skip-browser-warning: true" "${S_URL}/api/server/version" || echo "Échec du curl"
       continue-on-error: true
 
     - name: Analyse SonarQube
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
       run: |
+        S_URL=$(echo "${{ secrets.SONAR_HOST_URL }}" | tr -d '\r\n' | xargs)
+        S_TOKEN=$(echo "${{ secrets.SONAR_TOKEN }}" | tr -d '\r\n' | xargs)
+        
         ./mvnw -e sonar:sonar \
         -Dsonar.projectKey=EcoMove \
-        -Dsonar.host.url="${{ secrets.SONAR_HOST_URL }}" \
-        -Dsonar.token="${{ secrets.SONAR_TOKEN }}" \
+        -Dsonar.host.url="${S_URL}" \
+        -Dsonar.token="${S_TOKEN}" \
         -Dsonar.qualitygate.wait=true
 
     - name: Sauvegarde de l'Artifact (JAR)
