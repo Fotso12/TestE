@@ -40,7 +40,7 @@ jobs:
         SPRING_DATASOURCE_USERNAME: root
         SPRING_DATASOURCE_PASSWORD: root
 
-    - name: Vérifier la connectivité SonarQube (Debug)
+    - name: Vérifier la connectivité SonarQube (Debug) et les erreurs
       run: |
         S_URL=$(echo "${{ secrets.SONAR_HOST_URL }}" | tr -d '\r\n' | xargs)
         echo "Vérification de l'URL : ${S_URL}"
