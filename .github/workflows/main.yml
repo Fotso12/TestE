@@ -42,7 +42,7 @@ jobs:
 
     - name: Analyse SonarQube
       run: |
-        # Nettoyage automatique des secrets pour éviter les erreurs de formatage
+        # Nettoyage automatique des secrets pour éviter les erreurs de formatage et les espaces
         S_URL=$(echo "${{ secrets.SONAR_HOST_URL }}" | tr -d '\r\n' | xargs)
         S_TOKEN=$(echo "${{ secrets.SONAR_TOKEN }}" | tr -d '\r\n' | xargs)
         
