@@ -44,10 +44,10 @@ jobs:
       run: |
         S_URL=$(echo "${{ secrets.SONAR_HOST_URL }}" | tr -d '\r\n' | xargs)
         echo "Vérification de l'URL : ${S_URL}"
-        echo "--- HEADERS ---"
-        curl -I -s "${S_URL}/api/server/version"
-        echo "--- BODY (10 premières lignes) ---"
-        curl -s "${S_URL}/api/server/version" | head -n 10
+        echo "--- VERSION ---"
+        curl -s "${S_URL}/api/server/version"
+        echo "--- BOOTSTRAP INDEX (Aperçu) ---"
+        curl -s "${S_URL}/batch/index" | head -n 5
       continue-on-error: true
 
     - name: Analyse SonarQube
