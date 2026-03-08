@@ -46,8 +46,8 @@ jobs:
         echo "Vérification de l'URL : ${S_URL}"
         echo "--- VERSION ---"
         curl -s "${S_URL}/api/server/version"
-        echo "--- BOOTSTRAP INDEX (Aperçu) ---"
-        curl -s "${S_URL}/batch/index" | head -n 5
+        echo "--- TEST BOOTSTRAP INDEX ---"
+        curl -i -s "${S_URL}/batch/index" | head -n 20
       continue-on-error: true
 
     - name: Analyse SonarQube
