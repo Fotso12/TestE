@@ -1,5 +1,7 @@
 package com.ecomove.services.impl;
 
+import com.ecomove.exceptions.BusinessException;
+import com.ecomove.exceptions.ResourceNotFoundException;
 import com.ecomove.dtos.ReservationDTO;
 import com.ecomove.entities.Reservation;
 import com.ecomove.entities.Trajet;
@@ -36,12 +38,12 @@ public class ReservationServiceImpl implements ReservationService {
     @Override
     public ReservationDTO reserverTrajet(ReservationDTO reservationDTO) {
         Utilisateur passager = utilisateurRepository.findById(reservationDTO.getPassagerId())
-                .orElseThrow(() -> new RuntimeException("Passager non trouvé"));
+                .orElseThrow(() -> new ResourceNotFoundException("Passager non trouvé"));
         Trajet trajet = trajetRepository.findById(reservationDTO.getTrajetId())
-                .orElseThrow(() -> new RuntimeException("Trajet non trouvé"));
+                .orElseThrow(() -> new ResourceNotFoundException("Trajet non trouvé"));
 
         if (trajet.getPlacesDisponibles() <= 0) {
-            throw new RuntimeException("Plus de places disponibles pour ce trajet");
+            throw new BusinessException("Plus de places disponibles pour ce trajet");
         }
 
         Reservation reservation = reservationMapper.toEntity(reservationDTO, passager, trajet);
@@ -59,7 +61,7 @@ public class ReservationServiceImpl implements ReservationService {
     @Transactional(readOnly = true)
     public ReservationDTO obtenirReservationParId(Long id) {
         Reservation reservation = reservationRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Réservation non trouvée"));
+                .orElseThrow(() -> new ResourceNotFoundException("Réservation non trouvée"));
         return reservationMapper.toDTO(reservation);
     }
 
@@ -74,7 +76,7 @@ public class ReservationServiceImpl implements ReservationService {
     @Override
     public ReservationDTO mettreAJourReservation(Long id, ReservationDTO reservationDTO) {
         Reservation reservationExistante = reservationRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Réservation non trouvée"));
+                .orElseThrow(() -> new ResourceNotFoundException("Réservation non trouvée"));
         
         reservationExistante.setStatut(reservationDTO.getStatut());
         
@@ -85,7 +87,7 @@ public class ReservationServiceImpl implements ReservationService {
     @Override
     public void annulerReservation(Long id) {
         Reservation reservation = reservationRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Réservation non trouvée"));
+                .orElseThrow(() -> new ResourceNotFoundException("Réservation non trouvée"));
         
         // Libérer la place sur le trajet
         Trajet trajet = reservation.getTrajet();
