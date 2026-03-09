@@ -8,7 +8,17 @@ on:
 
 jobs:
   build-and-analyze:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: ecomove
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping -proot" --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
     - name: Checkout du code
@@ -25,11 +35,17 @@ jobs:
 
     - name: Compilation et Tests
       run: ./mvnw clean verify
-      # On suppose que MySQL est déjà lancé localement ou via Docker sur le PC
+      env:
+        SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/ecomove
+        SPRING_DATASOURCE_USERNAME: root
+        SPRING_DATASOURCE_PASSWORD: root
 
-    - name: Analyse SonarQube
+    - name: Analyse SonarCloud
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       run: |
-        ./mvnw sonar:sonar "-Dsonar.projectKey=EcoMove" "-Dsonar.host.url=http://localhost:9000" "-Dsonar.token=${{ secrets.SONAR_TOKEN }}" "-Dsonar.qualitygate.wait=true"
+        ./mvnw sonar:sonar -Dsonar.projectKey=Fotso12_TestE -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} -Dsonar.host.url=https://sonarcloud.io -Dsonar.qualitygate.wait=true
 
     - name: Sauvegarde de l'Artifact (JAR)
       uses: actions/upload-artifact@v4
