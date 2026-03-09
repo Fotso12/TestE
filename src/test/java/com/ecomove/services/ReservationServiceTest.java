@@ -4,6 +4,8 @@ import com.ecomove.dtos.ReservationDTO;
 import com.ecomove.entities.Reservation;
 import com.ecomove.entities.Trajet;
 import com.ecomove.entities.Utilisateur;
+import com.ecomove.exceptions.BusinessException;
+import com.ecomove.exceptions.ResourceNotFoundException;
 import com.ecomove.mapper.ReservationMapper;
 import com.ecomove.repositories.ReservationRepository;
 import com.ecomove.repositories.TrajetRepository;
@@ -27,7 +29,7 @@ import static org.mockito.Mockito.*;
  * Tests unitaires pour le service de gestion des réservations.
  *
  * @author Darryl
- * @version 1.0
+ * @version 1.1
  */
 @ExtendWith(MockitoExtension.class)
 public class ReservationServiceTest {
@@ -70,7 +72,7 @@ public class ReservationServiceTest {
     }
 
     @Test
-    void testReserverTrajet() {
+    void testReserverTrajet_Success() {
         when(utilisateurRepository.findById(2L)).thenReturn(Optional.of(passager));
         when(trajetRepository.findById(10L)).thenReturn(Optional.of(trajet));
         when(reservationMapper.toEntity(any(ReservationDTO.class), any(), any())).thenReturn(reservation);
@@ -80,7 +82,45 @@ public class ReservationServiceTest {
         ReservationDTO result = reservationService.reserverTrajet(reservationDTO);
 
         assertNotNull(result);
-        verify(trajetRepository, times(1)).save(any()); // Vérifier la décrémentation des places
+        verify(trajetRepository, times(1)).save(any());
         verify(reservationRepository, times(1)).save(any());
+    }
+
+    @Test
+    void testReserverTrajet_PassagerNonTrouve() {
+        when(utilisateurRepository.findById(2L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> reservationService.reserverTrajet(reservationDTO));
+    }
+
+    @Test
+    void testReserverTrajet_TrajetNonTrouve() {
+        when(utilisateurRepository.findById(2L)).thenReturn(Optional.of(passager));
+        when(trajetRepository.findById(10L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> reservationService.reserverTrajet(reservationDTO));
+    }
+
+    @Test
+    void testReserverTrajet_PlusDePlaces() {
+        trajet.setPlacesDisponibles(0);
+        when(utilisateurRepository.findById(2L)).thenReturn(Optional.of(passager));
+        when(trajetRepository.findById(10L)).thenReturn(Optional.of(trajet));
+
+        assertThrows(BusinessException.class, () -> reservationService.reserverTrajet(reservationDTO));
+    }
+
+    @Test
+    void testObtenirReservationParId_NonTrouvee() {
+        when(reservationRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> reservationService.obtenirReservationParId(1L));
+    }
+
+    @Test
+    void testAnnulerReservation_NonTrouvee() {
+        when(reservationRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> reservationService.annulerReservation(1L));
     }
 }
